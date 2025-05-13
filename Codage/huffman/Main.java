@@ -1,3 +1,4 @@
+import java.util.HashMap;
 import java.util.Map;
 
 public class Main {
@@ -17,17 +18,18 @@ public class Main {
             Map<Character, String> huffmanCodes = Huff.loadDictionary(dicoFile);
             HuffmanNode root = Huff.rebuildHuffmanTree(huffmanCodes);
 
+            countCodeLengths(huffmanCodes);
             for (Map.Entry<Character, String> entry : huffmanCodes.entrySet()) {
                         // if (huffmanCode.containsKey('A')) {
                         //     System.out.println("yes contains A  valeur : "+huffmanCode.get('A'));
                         // }
-                        System.out.println(entry.getKey() + " : " + entry.getValue());
+                        System.out.println(entry.getKey() + " : " + entry.getValue() +" taille : " + entry.getValue().length());
             }
 
             String encoder = Huff.encoder(huffmanCodes, "raha makany ela");
             System.out.println("binary : "+encoder);
-            String decoder = Huff.decode(root, "011000001110001111101000100001100101011110000111100");
-            System.out.println(decoder);
+            // String decoder = Huff.decode(root, "011000001110001111101000100001100101011110000111100");
+            // System.out.println(decoder);
             // if (Huff.compareFiles(inputFile, decompressedFile)) {
             //     System.out.println("Compression/décompression réussie !");
             //     System.out.println(decoder);
@@ -47,5 +49,21 @@ public class Main {
             System.out.println(e);
         }
 
+    }
+
+    public static void countCodeLengths(Map<Character, String> huffmanCodes) {
+        Map<Integer, Integer> lengthCounts = new HashMap<>();
+
+        for (Map.Entry<Character, String> entry : huffmanCodes.entrySet()) {
+            String code = entry.getValue();
+            int length = code.length();
+
+            lengthCounts.put(length, lengthCounts.getOrDefault(length, 0) + 1);
+        }
+
+
+        for (Map.Entry<Integer, Integer> entry : lengthCounts.entrySet()) {
+            System.out.println("Taille " + entry.getKey() + " : " + entry.getValue() + " codes");
+        }
     }
 }
