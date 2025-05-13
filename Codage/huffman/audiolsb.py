@@ -4,16 +4,16 @@ import struct
 
 def safe_lsb_modification(sample, bit_value, sample_width):
     """Modifie le LSB en garantissant que la valeur reste dans les limites"""
-    if sample_width == 1:  # 8-bit (0-255)
+    if sample_width == 1:  
         return np.uint8((sample & 0xFE) | bit_value)
-    elif sample_width == 2:  # 16-bit (-32768 à 32767)
+    elif sample_width == 2:  
         new_val = (int(sample) & 0xFFFE) | bit_value
         if new_val > 32767:
             new_val -= 65536
         return np.int16(new_val)
-    elif sample_width == 3:  # 24-bit
+    elif sample_width == 3:  
         return sample
-    elif sample_width == 4:  # 32-bit
+    elif sample_width == 4:  
         return np.int32((sample & 0xFFFFFFFE) | bit_value)
     else:
         raise ValueError("Taille d'échantillon non supportée")
@@ -52,30 +52,23 @@ def encoder_audio(audio_path, message_binaire, output_path):
     if len(message_binaire) > available_bits:
         raise ValueError(f"Message trop long. Capacité: {available_bits} bits")
 
-    # Encodage
     modified_indices = []
     for i in range(len(message_binaire)):
-        # Calcul position dans le tableau de bytes
         byte_pos = i * sample_width
         
         if sample_width == 3:
-            # Cas spécial 24-bit (on modifie le dernier octet)
             frames_copy[byte_pos + 2] = (frames_copy[byte_pos + 2] & 0xFE) | int(message_binaire[i])
         else:
-            # Lecture du sample original
             original = int.from_bytes(frames_copy[byte_pos:byte_pos+sample_width], 
                                     'little', 
                                     signed=(sample_width > 1))
             
-            # Modification LSB
             modified = safe_lsb_modification(original, int(message_binaire[i]), sample_width)
             
-            # Réécriture
             frames_copy[byte_pos:byte_pos+sample_width] = modified.tobytes()
         
         modified_indices.append(i)
 
-    # Sauvegarde
     with wave.open(output_path, 'wb') as output:
         output.setparams(params)
         output.writeframes(frames_copy)
@@ -99,7 +92,7 @@ def decoder_audio(audio_path, indices):
         elif sample_width == 2:
             sample = int.from_bytes(frames[byte_pos:byte_pos+2], 'little', signed=True)
         elif sample_width == 3:
-            sample = frames[byte_pos + 2]  # On prend le dernier octet du sample 24-bit
+            sample = frames[byte_pos + 2]
         elif sample_width == 4:
             sample = int.from_bytes(frames[byte_pos:byte_pos+4], 'little', signed=True)
         
@@ -107,7 +100,6 @@ def decoder_audio(audio_path, indices):
     
     return ''.join(message)
 
-# Test complet
 if __name__ == "__main__":
     try:
         message = "100101110010000100111001"
